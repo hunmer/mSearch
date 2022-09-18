@@ -1,0 +1,88 @@
+{
+  "name": "mSearch",
+  "version": "1.0.1",
+  "description": "A minimal Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "update": "node fileList.js",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "electron-builder",
+    "dist-win": "electron-builder --win --ia32",
+    "dist-win64": "electron-builder --win --x64",
+    "dist-mac": "electron-builder --mac",
+    "dist-linux": "electron-builder --linux"
+  },
+  "repository": "https://github.com/hunmer/mSearch",
+  "keywords": [],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^18.3.13",
+    "electron-builder": "^22.14.13"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.0.8",
+    "aria2": "^4.1.2",
+    "builder-util": "^23.5.0",
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "productName": "mSearch",
+    "appId": "com.hunmer.mSearch",
+    "copyright": "hunmer",
+    "asar": false,
+    "files": [
+      "!download",
+      "!.git"
+    ],
+    "extraFiles": [
+      "./extensions"
+    ],
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "favicon.ico"
+    },
+    "linux": {
+      "icon": "favicon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "favicon.ico"
+    },
+    "dmg": {
+      "title": "Mac程序",
+      "icon": "favicon.ico",
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "x": 400,
+        "y": 400
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "favicon.ico"
+    }
+  }
+}
