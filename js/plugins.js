@@ -2,7 +2,7 @@ var g_plugin = {
     events: {},
     instance: {},
     resetAll: function() {
-        nodejs.files.removeDir(__dirname+'scripts/');
+        nodejs.files.removeDir(__dirname + 'scripts/');
         g_plugin.defaultList();
     },
     defaultList: function(reload = true) {
@@ -29,6 +29,7 @@ var g_plugin = {
     initEvent: function(eventName, callback, overwrite = false) {
         var event = this.getEvent(eventName, true);
         event.finish = callback;
+        // 绑定最后执行函数
     },
     registerEvent: function(eventName, callback, primary = 1) {
         var event = this.getEvent(eventName);
@@ -51,26 +52,28 @@ var g_plugin = {
         }
         return this.events[eventName];
     },
-    callEvent: function(eventName, data, callback) {
-        var event = this.getEvent(eventName);
-        if (event) {
-            for(let k in data){
-                if(typeof(data[k]) == 'function'){
-                    // 执行函数取值
-                    data[k] = data[k].apply(data)
+    callEvent: function(eventName, data) {
+        let self = this
+        return new Promise(async function(reslove, reject) {
+            var event = self.getEvent(eventName);
+            if (event) {
+                for (let k in data) {
+                    if (typeof(data[k]) == 'function') {
+                        // 执行函数取值
+                        data[k] = data[k].apply(data)
+                    }
                 }
-            }
-            // todo promise
-            for (var listener of event.listeners.sort((a, b) => {
-                    return b.primary - a.primary;
-                })) {
-                if (listener.callback(data) === false) {
-                    return;
+                for (var listener of event.listeners.sort((a, b) => {
+                        return b.primary - a.primary;
+                    })) {
+                    if (await listener.callback(data) === false) {
+                        return reject();
+                    }
                 }
+                event.finish && event.finish(data); 
+                reslove(data)
             }
-            if (callback) return callback(data);
-            event.finish && event.finish(data);
-        }
+        })
     },
     initPlugins: function() {
         var load = [];
@@ -100,16 +103,15 @@ var g_plugin = {
             selector: '#modal_plugins tr[data-key]',
             dataKey: 'data-key',
             html: g_menu.buildItems([{
-                    icon: 'pencil',
-                    text: '编辑',
-                    action: 'plugin_item_edit'
-                }, {
-                    icon: 'trash',
-                    text: '删除',
-                    class: 'text-danger',
-                    action: 'plugin_item_delete'
-                }
-            ])
+                icon: 'pencil',
+                text: '编辑',
+                action: 'plugin_item_edit'
+            }, {
+                icon: 'trash',
+                text: '删除',
+                class: 'text-danger',
+                action: 'plugin_item_delete'
+            }])
         });
         g_action.
         registerAction('modal_plugin', (dom, action) => {
@@ -139,9 +141,9 @@ var g_plugin = {
         confirm('是否删除插件 【' + this.getKey(key).title + '】 ?', {
             title: '删除插件',
         }).then(() => {
-             $('#modal_plugins_edit').modal('hide');
-                    g_plugin.removeKey(key);
-                    toast('删除成功', 'success');
+            $('#modal_plugins_edit').modal('hide');
+            g_plugin.removeKey(key);
+            toast('删除成功', 'success');
         })
     },
     changed: 0,
@@ -152,7 +154,7 @@ var g_plugin = {
             desc: '',
             version: '0.0.1',
             primary: 1,
-        }, this.getKey(key) || {}, { content: nodejs.files.read(__dirname+'/scripts/' + key + '.js', '') });
+        }, this.getKey(key) || {}, { content: nodejs.files.read(__dirname + '/scripts/' + key + '.js', '') });
         var h = `
             <div class="input-group mb-3">
               <div class="input-group-prepend">
@@ -256,7 +258,7 @@ var g_plugin = {
         }
     },
     setItem: function(key, value, save = true) {
-        nodejs.files.write(__dirname+'/scripts/' + key + '.js', value.content);
+        nodejs.files.write(__dirname + '/scripts/' + key + '.js', value.content);
         delete value.content;
 
         this.list[key] = value;

@@ -422,7 +422,9 @@ var g_tabs = {
         webview.addEventListener('update-target-url', function(e) {
             // 显示目标链接是否已经下载过
             g_cache.targetURL = e.url
-            g_tabs.group_getContent(this.id.split('-')[0]).toggleClass('border-danger border-wide', g_downloader.downloaded_exists(e.url) >= 0)
+            if (getConfig('downloadedHightlight')) {
+                g_tabs.group_getContent(this.id.split('-')[0]).toggleClass('border-danger border-wide', g_downloader.downloaded_exists(e.url) >= 0)
+            }
         });
 
         webview.addEventListener('page-title-updated', function(e) {
@@ -457,17 +459,22 @@ var g_tabs = {
                 add('搜索', 'rmsearch,selectionText', 'search')
             }
             if (menu.length) {
-                g_modal.modal_build({
-                    title: '右键菜单',
-                    id: 'rm',
-                    static: false,
-                    html: g_menu.buildItems(menu),
-                    hotkey: true,
+                g_plugin.callEvent('showWebMenu', {
+                    webview: webview,
+                    menu: menu,
+                }).then(data => {
+                    console.log(data)
+                    g_modal.modal_build({
+                        title: '右键菜单',
+                        id: 'rm',
+                        static: false,
+                        html: g_menu.buildItems(data.menu),
+                        hotkey: true,
+                    })
                 })
             }
         });
         webview.addEventListener('destroyed', function(e) {
-            console.log(this.getWebContentsId())
             self.ids_remove(this.getWebContentsId());
         });
 
@@ -589,7 +596,7 @@ var g_tabs = {
         g_plugin.callEvent('beforeLoadURL', {
             opts: opts,
             group: group,
-        }, data => {
+        }).then(data => {
             let { group, opts } = data
             let id = group + '-' + opts.id
             let tid = 'tabs-' + id
@@ -625,7 +632,7 @@ var g_tabs = {
         g_action.do(this.tab_getBtn(id)[0], 'tab_show')
     },
 
-    getCurrentWeb(){
+    getCurrentWeb() {
         return g_tabs.group_getCurrentWeb(g_tabs.btn_getCurrent().data('site'))
     },
 
@@ -650,7 +657,7 @@ var g_tabs = {
                 if (next.hasClass('ms-auto')) next = this.btn.prev() // 设置按钮
                 return next
             }
-        }, data => {
+        }).then(data => {
             let { group, btn, next } = data
             btn.remove()
 

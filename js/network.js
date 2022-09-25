@@ -13,7 +13,7 @@ var g_network = {
                 ">
                   <button type="button" class="btn position-relative" data-bs-toggle="dropdown" data-action="network_show" data-bs-auto-close="outside">
                     <i class="ti ti-wave-saw-tool fs-1"></i>
-                    <span id="badge_network" class="badge bg-danger badge-pill position-absolute top-0 end-0 hide1" style="right: -10px;"></span>
+                    <span id="badge_network" class="badge bg-danger badge-pill position-absolute top-0 end-0" style="right: -10px;"></span>
                   </button>
                   <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-card dropdown-static" style="width: 400px;">
                     <div class="card">
@@ -21,7 +21,7 @@ var g_network = {
                               <div class="input-group input-group-flat w-full">
                                 <span class="input-group-text">
                                     <select class="form-control" data-change="network_type">
-                                        <option value="All" checked>所有</option>
+                                        <option value="All" selected>所有</option>
                                         <option value="media">媒体</option>
                                         <option value="image">图片</option>
                                         <option value="script">脚本</option>
@@ -64,9 +64,7 @@ var g_network = {
                 </div>
             `).appendTo('main')
             getEle({ change: 'network_type' }).val(g_setting.getConfig('network_type'))
-
         });
-
         g_action.registerAction('network_show', dom => {
             self.show(g_tabs.getCurrentWeb().data('web-content'))
         }).
@@ -119,7 +117,7 @@ var g_network = {
                     return ipc_send('url', d.url)
                 case 'network_item_download':
                     return g_downloader.modal_download({
-                        fileName: popString(d.url, '/'),
+                        // fileName: popString(d.url, '/'), // todo 标签页名称
                         url: d.url,
                     })
             }
@@ -165,7 +163,7 @@ var g_network = {
         let r = { id, method, referrer, resourceType, url } = detail
 
         for(let [k, v] of Object.entries(this.list[wid])){
-            if(v.url == r.url) return
+            if(v.url == url) return
         }
 
         let index = '_' + (this._id++)
@@ -185,8 +183,11 @@ var g_network = {
         this.setBadge(Object.keys(this.getResult(wid)).length)
     },
     setBadge(i) {
+        if(isEmpty(i)) return;
+        
         i = parseInt(i)
-        $('#badge_network').toggleClass('hide1', i <= 0).html(i)
+        // toggleClass('hide1', i <= 0).
+        $('#badge_network').html(i)
     },
     remove(id) {
         delete this.list[id]
@@ -241,5 +242,6 @@ var g_network = {
 //     // 移除会报错但有效果
 //     content.session.webRequest.removeListener('onBeforeRequest', content._requestListenerId);
 // } catch {}
-
-g_network.init()
+if(getConfig('networkListenter')){
+    g_network.init()
+}

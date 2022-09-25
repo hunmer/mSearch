@@ -11,7 +11,6 @@ const store = new Store({
     fullScreen: true,
 });
 const remote = require("@electron/remote/main")
-const enhanceWebRequest  = require('electron-better-web-request');
 
 Menu.setApplicationMenu(null)
 var win;
@@ -76,10 +75,8 @@ function createWindow() {
         }
     })
     remote.enable(win.webContents);
-
     win.webContents.on('did-attach-webview', (event, webContents) => {
         remote.enable(webContents);
-        enhanceWebRequest.default(webContents.session);
         send('startNetworkListener', webContents.id)
         // 新窗口转为tab
         webContents.setWindowOpenHandler(function(data) {
@@ -92,6 +89,8 @@ function createWindow() {
             }
         });
     });
+
+
     win.webContents.session.on('will-download', (e, item, webContents) => {
         e.preventDefault();
         send('download', {

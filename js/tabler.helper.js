@@ -4,7 +4,12 @@ var g_tabler = {
         
     },
     init() {
-        // $(document).
+        $(document).
+        on('click', '.form-videocheck', function(e){
+            let input = this.querySelector('.form-videocheck-input')
+            input.checked = !input.checked
+            clearEventBubble(e)
+        })
         // $(this.bind_all());
         // .on('click', 'a[data-bs-toggle]', function(e){
         //     let action = this.dataset.action_toggle

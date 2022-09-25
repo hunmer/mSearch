@@ -1,6 +1,6 @@
 {
   "name": "mSearch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A minimal Electron application",
   "main": "main.js",
   "scripts": {
@@ -39,6 +39,11 @@
     "asar": false,
     "files": [
       "!download",
+      "!extensions",
+      "!script",
+      "!cache",
+      "!test",
+      "!test",
       "!.git"
     ],
     "extraFiles": [

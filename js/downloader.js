@@ -4,7 +4,7 @@ var g_downloader = {
         self.downloaded = local_readJson('downloaded', [])
         self.datas = local_readJson('downloads', {})
 
-        g_setting.setDefault('aria2c_path', __dirname + '\\bin\\')
+
         g_action.
         registerAction('download_title_click', dom => {
             let id = $(dom).parents('[data-download]').data('download')
@@ -20,7 +20,7 @@ var g_downloader = {
                 title: '选择aria2c目录',
             }).then(path => {
                 g_setting.setConfig('aria2c_path', path)
-                if(old != path){
+                if (old != path) {
                     // 直接重载算了...
                     return location.reload()
                 }
@@ -45,14 +45,14 @@ var g_downloader = {
                     onBtnClick: (btn, modal) => {
                         if (btn.id == 'btn_ok') {
                             let vals = g_form.getVals('aria2c_setting')
-                           // g_form.setInvalid('aria2c_setting', 'port')
-                           // TODO 一些数值检查
+                            // g_form.setInvalid('aria2c_setting', 'port')
+                            // TODO 一些数值检查
 
-                           self.config['rpc-listen-port'] = vals['port']
-                           self.config['max-concurrent-downloads'] = vals['maxDownloads']
-                           // Aria有一个方法可以修改参数，但是不确定是否端口也可以动态修改，总之先暴力重载
-                           self.saveConfig()
-                           location.reload()
+                            self.config['rpc-listen-port'] = vals['port']
+                            self.config['max-concurrent-downloads'] = vals['maxDownloads']
+                            // Aria有一个方法可以修改参数，但是不确定是否端口也可以动态修改，总之先暴力重载
+                            self.saveConfig()
+                            location.reload()
                             return true
                         }
                         ipc_send('url', self.getAriaPath('aria2.conf'))
@@ -70,7 +70,7 @@ var g_downloader = {
             g_menu.hideMenu('download_item_menu')
             switch (action[0]) {
                 case 'download_item_folder':
-                    let file = d.pathName + '\\' + d.fileName
+                    let file = d.pathName + d.fileName
                     if (!nodejs.files.exists(file)) return g_toast.toast('文件不存在', '错误', 'danger');
                     return ipc_send('openFolder', file)
                     break;
@@ -102,7 +102,7 @@ var g_downloader = {
             }
         }).
         registerAction('download_path', dom => {
-            ipc_send('openFolder', g_setting.getConfig('savePath', nodejs.dir + '\\downloads'))
+            ipc_send('openFolder', g_setting.getConfig('savePath'))
         })
 
         g_menu.registerMenu({
@@ -178,13 +178,10 @@ var g_downloader = {
             }
         })
     },
-    test(url) {
-        let time = new Date().getTime()
-        this.item_add('test_' + time, {
-            pathName: 'I:\\software\\douyin_downloader\\download',
-            fileName: time + 'test.mp4',
-            url: url || 'http://127.0.0.1/1.mp4',
-            title: 'test_' + time + '.mp4'
+    quickDownload(url, ext) {
+        this.item_add(guid(), {
+            url: url,
+            fileName: guid() + '.' + ext
         })
     },
     cache: {
@@ -232,7 +229,7 @@ var g_downloader = {
                     console.log('链接失败')
                 })
                 .on('addUri', v => {
-                    g_plugin.callEvent('addUri', v, v => {
+                    g_plugin.callEvent('addUri', v).then(v => {
                         self.downloaded_add(v.refer)
                         self.data_set(v.id, Object.assign(v, {
                             date: new Date().getTime(),
@@ -299,15 +296,14 @@ var g_downloader = {
     },
     item_add(id, opts) {
         if (isEmpty(id)) id = new Date().getTime()
-        Object.assign(opts, {
-            pathName: g_setting.getConfig('savePath', nodejs.dir + '\\downloads'),
-        })
-        g_plugin.callEvent('beforeaddDownload', { id: id, opts: opts }, data => {
+        if(!opts.pathName) opts.pathName = getConfig('savePath')
+        if(!opts.fileName) opts.fileName = guid() + '.' + popString(opts.url, '.')
+
+        g_plugin.callEvent('beforeaddDownload', { id: id, opts: opts }).then(data => {
             let { id, opts } = data
             // todo 分类规则
             // base64数据直接下载
             opts.title = opts.fileName
-            opts.fileName = new Date().getTime() + '.' + opts.fileName.split('.').pop()
             opts.id = id
             this.aria2c.addUris([opts]);
             this.refresh()

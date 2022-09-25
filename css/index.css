@@ -1,5 +1,16 @@
 
 
+.form-videocheck{
+    position: relative;
+}
+
+.form-videocheck .form-videocheck-input {
+    position: absolute;
+    left: 4px;
+    top:  4px;
+    z-index:  2;
+}
+
 :root {
     --offset-top: 0px;
 }
@@ -138,6 +149,13 @@ body {
     cursor: pointer;
 }
 
+.text-nowarp {
+    display: block;
+    word-break: keep-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 @media (max-width: 1070px) {
     #content .nav-tabs span {
@@ -147,10 +165,6 @@ body {
 
 #content ul li.nav-item {
     max-width: 150px;
-    word-break: keep-all;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 #content ul li.nav-item span {

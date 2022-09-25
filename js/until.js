@@ -172,7 +172,7 @@ Date.prototype.format = function(fmt) {
 }
 
 function popString(s, split) {
-    return s.split(split).pop();
+    return typeof(s) == 'string' ? s.split(split).pop() : '';
 }
 
 function getImgBase64(video, width, height) {
@@ -464,6 +464,8 @@ function toast(msg, style = 'bg-info', time = 3000) {
 
 function replaceClass(dom, find, replace, apply = true) {
     if (dom.length) dom = dom[0]
+    if(!dom.classList) return
+
     dom.classList.forEach(c => {
         for(let f of find.split(' ')) c.startsWith(f) && dom.classList.remove(c)
     })

@@ -1,5 +1,5 @@
-const { app, ipcRenderer, clipboard, shell, session } = require('electron');
-const { getCurrentWindow, getCurrentWebContents, webContents } = require('@electron/remote');
+const { app, ipcRenderer, clipboard, shell } = require('electron');
+const { getCurrentWindow, getCurrentWebContents, webContents,session } = require('@electron/remote');
 const files = require('./file.js')
 const fs = require('fs')
 const request = require('request')
@@ -96,12 +96,24 @@ ipcRenderer.on('fileDialog_revice', (event, arg) => {
     g_pp.call(arg.id, arg.paths);
 });
 
+let enhanceWebRequest
 ipcRenderer.on('startNetworkListener', (event, id) => {
-    let content = webContents.fromId(id)
-    content._requestListenerId = content.session.webRequest.addListener('onBeforeRequest', { urls: ['*://*/*'] }, (details, callback) => {
-        g_network.detail_add(details)
-        callback({ cancel: false });
-    }).id;
+    if (getConfig('networkListenter')) {
+        // if (!enhanceWebRequest) enhanceWebRequest = require('electron-better-web-request');
+        let content = webContents.fromId(id)
+        // enhanceWebRequest.default(content.session);
+        // content._requestListenerId = content.session.webRequest.addListener('onBeforeRequest', { urls: ['*://*/*'] }, (details, callback) => {
+        //     g_network.detail_add(details)
+        //     console.log(details)
+        //     callback({ cancel: false });
+        // }).id;
+
+       // content.session.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
+       //      g_network.detail_add(details)
+       //      console.log(details)
+       //      callback({ cancel: false });
+       //  })
+    }
 })
 
 

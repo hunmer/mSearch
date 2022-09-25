@@ -631,7 +631,7 @@ var g_sites = {
                         <a class="dropdown-item" data-action="about">
                             <i class="ti ti-alert-circle fs-2"></i>
                             关于
-                            <span class="badge bg-primary ms-auto">0.0.1</span>
+                            <span class="badge bg-primary ms-auto">1.0.2</span>
                         </a>
                     </div>
                 </div>

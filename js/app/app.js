@@ -30,6 +30,17 @@ var g_app = {
                 static: false,
                 onShow: () => {
                     this.update_setLogs({
+                        '1.0.2': {
+                            date: '2022/9/26',
+                            title: '4项更新',
+                            text: `
+                            红绿灯窗口</br>
+                            网络请求监控</br>
+                            热更新</br>
+                            aria2c自定义</br>
+                        `
+                        },
+
                         '1.0.1': {
                             date: '2022/9/18',
                             title: '5项更新',
