@@ -2,7 +2,7 @@ let g_update = {
     needUpdates: [],
     init() {
         const self = this
-        g_setting.setDefault('updateURL', 'https://raw.githubusercontent.com/hunmer/VideoManager/main/')
+        g_setting.setDefault('updateURL', 'https://raw.githubusercontent.com/hunmer/mSearch/main/')
         g_action.
         registerAction('update_check', dom => {
             if (self.needUpdates.length) return self.showUpdates()
@@ -23,34 +23,36 @@ let g_update = {
             let list = {};
             let i = 0
             for (let n of Object.keys(json).filter(name => {
+                 let md5 = json[name]
                     name = name.replace(/\\/g, "/");
                     if (skip.includes(name)) return false;
 
                     let saveTo = __dirname + '/' + name;
-                    if (nodejs.files.exists(saveTo) && json[name] == nodejs.files.getFileMd5(saveTo)) return false;
+                    if (nodejs.files.exists(saveTo) && md5 == nodejs.files.getFileMd5(saveTo)) return false;
                     return true;
                 })) {
-                if (i >= 10) continue;
+                // if (i >= 10) continue;
                 list[n.replace(/\\/g, "/")] = json[n]
                 i++
             }
             this.needUpdates = list
             if (tip) {
                 if (!i) return toast('没有更新', 'success');
-                this.showUpdates(list);
+                this.showUpdates(list, url);
             } else {
                 $('#badge_update').toggleClass('hide', i == 0).html(i + ' News');
             }
         }, () => toast('更新失败', 'danger'), () => delete this.updateing)
     },
 
-    showUpdates(files) {
+    showUpdates(files, url) {
         if (!files) files = this.needUpdates;
+        if (!url) url = getConfig('updateURL')
         let i = 0
         let h = ''
-        for (let [file, url] of Object.entries(files)) {
+        for (let [file, md5] of Object.entries(files)) {
             h += `
-                <a class="list-group-item" data-url="${url}">
+                <a class="list-group-item" data-url="${url+file}">
                     ${file}
                 </a>
             `
@@ -101,7 +103,7 @@ let g_update = {
                     // todo 下载完成后md5检查
                     downloadFile({
                         url: url + name,
-                        saveTo: __dirname + '\\download\\' + name,
+                        saveTo: __dirname + '\\' + name,
                         onError: () => ++err,
                         complete: (u, s) => {
                             progress.setSloved(u)
