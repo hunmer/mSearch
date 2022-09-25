@@ -329,7 +329,7 @@ var g_plugin = {
             onBtnClick: (btn, modal) => {
                 switch (btn.id) {
                     case 'btn_more':
-                        ipc_send('url', 'https://github.com/hunmer/VideoManager/issues');
+                        ipc_send('url', 'https://github.com/hunmer/mSearch/issues');
                         return;
                     case 'btn_add':
                         g_plugin.prompt_add();

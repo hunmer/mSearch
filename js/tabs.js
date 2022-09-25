@@ -236,7 +236,7 @@ var g_tabs = {
         switch (k) {
             case 'group-item':
                 return format(`
-                    <li class="nav-item" data-action="tab_show" data-tab="%id%">
+                    <li class="nav-item text-nowarp" data-action="tab_show" data-tab="%id%">
                         <a class="nav-link %show%" data-bs-toggle="tab" >
                             <img class="tab_icon me-2" src="res/loading_sm.gif"></img>
                             <span>%title%</span>
