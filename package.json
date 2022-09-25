@@ -26,7 +26,11 @@
     "@electron/remote": "^2.0.8",
     "aria2": "^4.1.2",
     "builder-util": "^23.5.0",
-    "electron-store": "^8.1.0"
+    "electron-better-web-request": "^1.0.1",
+    "electron-store": "^8.1.0",
+    "ini": "^3.0.1",
+    "request": "^2.88.2",
+    "tslib": "^2.4.0"
   },
   "build": {
     "productName": "mSearch",

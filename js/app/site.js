@@ -94,10 +94,13 @@ var g_sites = {
             url: 'https://www.pinterest.com/search/pins/?q={query}',
             folder: '图片',
         },
-
         pexels: {
             url: 'https://www.pexels.com/zh-cn/search/{query}/',
             folder: '图片',
+        },
+        '699pic': {
+            folder: '图片',
+            url: 'https://699pic.com/tupian/{query}.html'
         },
         unsplash: {
             folder: '图片',
@@ -303,12 +306,35 @@ var g_sites = {
                 icon: 'box-multiple',
                 text: '克隆',
                 action: 'site_clone'
+            }, {
+                icon: 'x',
+                text: '关闭其他',
+                action: 'site_closeOther'
             }])
         })
 
         g_action.
         registerAction('site_export', (dom, action, event) => {
             g_toast.toast('暂不开放')
+        }).
+        registerAction('site_clear', (dom, action, event) => {
+            $('#content').html(`
+                <div class="empty">
+                  <div class="empty-icon">
+                    <i class="ti ti-alert-circle" style="font-size: 3rem;"></i>
+                  </div>
+                  <p class="empty-title">内容已清空</p>
+                  <p class="empty-subtitle text-muted">
+                    快去搜索吧！！
+                  </p>
+                  <div class="empty-action">
+                    <a class="btn btn-primary">
+                        <i class="ti ti-search"></i>
+                        搜索
+                    </a>
+                  </div>
+                </div>
+            `)
         }).
         registerAction('site_import', (dom, action, event) => {
             g_toast.toast('暂不开放')
@@ -329,12 +355,17 @@ var g_sites = {
         registerAction('site_new', dom => {
             self.site_edit('')
         }).
-        registerAction(['site_edit', 'site_delete', 'site_clone'], (dom, action) => {
+        registerAction(['site_edit', 'site_delete', 'site_clone', 'site_closeOther'], (dom, action) => {
             g_menu.hideMenu('site_menu')
             // todo form 模板？ 不然太麻烦了
             let site = g_menu.target.data('site')
             let d = self.site_get(site)
             switch (action[0]) {
+                case 'site_closeOther':
+                    for(let s of g_sites.group_get(g_sites.group)){
+                        if(s != site) g_tabs.group_getContent(s).remove()
+                    }
+                    return; 
                 case 'site_clone':
                     self.site_set(site + +parseInt(new Date().getTime() / 1000), d)
                     g_toast.toast('成功克隆', '', 'success')
@@ -358,7 +389,6 @@ var g_sites = {
         }).
         registerAction('site_click', dom => {
             self.site_setActive($(dom))
-
             let site = dom.dataset.site
             self.site_getEle(site)[0].scrollIntoViewIfNeeded()
         })
@@ -442,6 +472,7 @@ var g_sites = {
     group_load: function(group, keyword) {
         let self = this
         self.cache = {}
+        g_network.clear()
 
         let h = ''
         let tabs = {} // 新的 tabs 数据
@@ -512,8 +543,7 @@ var g_sites = {
                 let pos = top + this.clientHeight / 2
                 for (let [n, v] of Object.entries(self.cache)) {
                     if (pos >= v.top && pos <= v.top + v.height) {
-                        if (n != self.cache.lastActive) {
-                            self.cache.lastActive = n
+                        if (n != g_cache.lastActive) {
                             self.site_setActive(n)
                         }
                     }
@@ -530,7 +560,8 @@ var g_sites = {
         }, 200)
     },
     site_setActive: function(btn) {
-        if (typeof(btn) == 'string') btn = this.site_getSideBtn(btn)
+        if (typeof(btn) == 'string') btn = this.site_getSideBtn(btn);
+        g_cache.lastActive = btn.data('site')
         $('#sidebar_left .list-group-item.active').removeClass('active')
         btn.addClass('active')
     },
@@ -595,7 +626,7 @@ var g_sites = {
                         <a class="dropdown-item" data-action="update_check">
                             <i class="ti ti-clock-2 fs-2"></i>
                             检测更新
-                            <span class="badge bg-danger ms-auto">News</span>
+                            <span id="badge_update" class="badge bg-danger ms-auto">News</span>
                         </a>
                         <a class="dropdown-item" data-action="about">
                             <i class="ti ti-alert-circle fs-2"></i>

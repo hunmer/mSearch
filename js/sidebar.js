@@ -14,7 +14,7 @@ var g_sidebar = {
     			position: fixed;
 				width: 200px;
 				overflow-y: auto;
-				height: 100vh;
+				height: calc(100vh - var(--offset-top));
 				transition: margin 0.25s ease-out;
     		}
     	`;
@@ -36,7 +36,7 @@ var g_sidebar = {
             style: `
 				#sidebar_left {
 	    			left: 0;
-					top: 0;
+					top: var(--offset-top);
 					margin-left: 0px;
 	    		}
 

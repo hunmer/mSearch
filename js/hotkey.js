@@ -10,14 +10,29 @@ var g_hotkey = {
             content: "ipc_send('devtool')",
             type: 2,
         },
+        '`': {
+            title: '切换侧边',
+            content: "getEle('sidebar_toggle,left').click()",
+            type: 2,
+        },
         'ctrl+keyw': {
             title: '关闭tab',
             content: "g_tabs.tab_closeCurrent()",
             type: 2,
         },
+        'ctrl+keyj': {
+            title: '下载列表',
+            content: "",
+            type: 2,
+        },
         'ctrl+keyf': {
             title: '聚焦搜索',
             content: "inputFocus($('#input_search')[0]",
+            type: 2,
+        },
+        'shift+delete': {
+            title: '清空搜索',
+            content: "g_action.do(null, 'site_clear')",
             type: 2,
         },
         'f10': {

@@ -118,15 +118,32 @@ var g_setting = {
 
     getConfig(k, def) {
         var v = g_config[k];
-        if (v == undefined) v = def;
+        if (v == undefined) v = def || this.getDefault(k);
         return v;
     },
 
-    toggleValue: function(k, b){
+    toggleValue(k, b){
         if(b == undefined) b = !this.getConfig(k);
         this.setConfig(k, b)
+    },
+
+    default: {}, // 默认值,省的getConfig一个一个填
+    setDefault(k, v){
+        this.default[k] = v
+    },
+
+    getDefault(k){
+        return this.default[k]
     }
 
 }
 
 g_setting.init()
+
+function getConfig(k, def){
+    return g_setting.getConfig(k, def)
+}
+
+function setConfig(k, v){
+    return g_setting.setConfig(k, v)
+}

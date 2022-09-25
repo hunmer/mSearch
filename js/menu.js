@@ -28,6 +28,7 @@ var g_menu = {
     },
     // 隐藏菜单
     hideMenu: function(key) {
+        delete g_menu.key
         $('#rm_' + key).hide();
     },
     // 注销菜单
@@ -62,7 +63,10 @@ var g_menu = {
                     if (!(x >= l && x <= l + child.width() && y >= t && y <= t + child.height())) {
                         this.style.display = 'none';
                     }
+                    clearEventBubble(e)
+                    console.log(e)
                 }
+
             })
             .on('oncontextmenu', function(e) {
                 this.style.display = 'none'

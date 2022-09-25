@@ -78,7 +78,6 @@ const files = {
         return path.basename(file, ext)
     },
     runCmd: (cmd, callback, onClose) => {
-        console.log(cmd);
         return new Promise(function(resolve, reject) {
             var result = spawn('cmd.exe ', ['/s', '/c', cmd], { shell: true });
             result.on('close', function(code) {
@@ -108,13 +107,15 @@ const files = {
         return fs.existsSync(file) ? fs.readFileSync(file).toString() : def
     },
     exists: (path) => {
-        console.log(path, files.getPath(path));
         return fs.existsSync(files.getPath(path))
     },
     isFile: (path) => fs.existsSync(path) && fs.statSync(path).isFile(),
     isDir: (path) => fs.existsSync(path) && fs.statSync(path).isDirectory(),
     mkdir: (dir) => {
         return mkdirsSync(files.getPath(dir))
+    },
+    makeSureDir: (file) => {
+      files.mkdir(path.dirname(file)) 
     },
     write: (file, content) => {
         file = files.getPath(file);

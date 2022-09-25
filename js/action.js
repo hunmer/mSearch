@@ -8,6 +8,24 @@ var g_action = {
         }
 
         $(document)
+            .on('mouseenter', '[data-hover]', function(event) {
+                this.hoverTimer = setTimeout(() => {
+                    delete this.hoverTimer
+                    doAction(this, this.dataset.hover, event);
+                }, this.dataset.hoverTime || 0)
+            })
+            .on('mouseleave', '[data-hover]', function(event) {
+                if(this.hoverTimer){
+                    clearTimeout(this.hoverTimer)
+                    delete this.hoverTimer
+                }else
+                if(this.dataset.out){
+                    doAction(this, this.dataset.out, event);
+                }
+            })
+            .on('click', '[data-url]', function(event) {
+                ipc_send('url', this.dataset.url)
+            })
             .on('click', '[data-action]', function(event) {
                 doAction(this, this.dataset.action, event);
             })
@@ -30,6 +48,7 @@ var g_action = {
                 doAction(this, this.dataset.contenx, event);
                 clearEventBubble(event);
             });
+
     },
     registerAction: function(name, callback) {
         if (!Array.isArray(name)) name = [name];

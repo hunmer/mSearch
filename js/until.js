@@ -22,6 +22,10 @@ function guid() {
     });
 }
 
+function getVal(v, def){
+    return !isEmpty(v) ? v : def
+}
+
 function toggleFullScreen() {
     if (!document.fullscreenElement && // alternative standard method
         !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) { // current working methods

@@ -78,7 +78,7 @@ var g_toast = {
 }
 
 g_toast.init()
-$(`<div id="toast" class="position-fixed" style="z-index: 9999;right: 20px;top: 20px;min-width: 200px;"></div>`).appendTo('body')
+$(`<div id="toast" class="position-fixed" style="z-index: 9999;right: 20px;top: 35px;min-width: 200px;"></div>`).appendTo('body')
 g_toast.register('default', {
     selector: '#toast',
 })

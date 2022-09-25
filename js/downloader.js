@@ -4,7 +4,7 @@ var g_downloader = {
         self.downloaded = local_readJson('downloaded', [])
         self.datas = local_readJson('downloads', {})
 
-
+        g_setting.setDefault('aria2c_path', __dirname + '\\bin\\')
         g_action.
         registerAction('download_title_click', dom => {
             let id = $(dom).parents('[data-download]').data('download')
@@ -14,8 +14,58 @@ var g_downloader = {
                 nodejs.files.openFile(f)
             }
         }).
-        registerAction(['download_item_copy', 'download_item_remove', 'download_item_folder'], (dom, action) => {
-            let k = g_menu.key
+        registerAction('aria2c_setting', dom => {
+            let old = self.getAriaPath()
+            prompt(old, {
+                title: '选择aria2c目录',
+            }).then(path => {
+                g_setting.setConfig('aria2c_path', path)
+                if(old != path){
+                    // 直接重载算了...
+                    return location.reload()
+                }
+                g_form.confirm('aria2c_setting', {
+                    elements: {
+                        port: {
+                            title: '端口',
+                            required: true,
+                            value: this.config['rpc-listen-port'],
+                        },
+                        maxDownloads: {
+                            title: '最大同时下载',
+                            required: true,
+                            value: this.config['max-concurrent-downloads']
+                        }
+                    },
+                }, {
+                    id: 'aria2c_setting',
+                    title: 'Aira2c设置',
+                    btn_ok: '保存',
+                    btn_cancel: '高级配置',
+                    onBtnClick: (btn, modal) => {
+                        if (btn.id == 'btn_ok') {
+                            let vals = g_form.getVals('aria2c_setting')
+                           // g_form.setInvalid('aria2c_setting', 'port')
+                           // TODO 一些数值检查
+
+                           self.config['rpc-listen-port'] = vals['port']
+                           self.config['max-concurrent-downloads'] = vals['maxDownloads']
+                           // Aria有一个方法可以修改参数，但是不确定是否端口也可以动态修改，总之先暴力重载
+                           self.saveConfig()
+                           location.reload()
+                            return true
+                        }
+                        ipc_send('url', self.getAriaPath('aria2.conf'))
+                        return false
+                    }
+
+                })
+            })
+
+        }).
+        registerAction(['download_item_copy', 'download_item_remove', 'download_item_folder'], (dom, action, e) => {
+
+            let k = $(dom).parents('[data-download]').data('download') || g_menu.key
             let d = self.item_get(k)
             g_menu.hideMenu('download_item_menu')
             switch (action[0]) {
@@ -64,10 +114,6 @@ var g_downloader = {
                 text: '复制链接',
                 action: 'download_item_copy'
             }, {
-                icon: 'folder',
-                text: '定位',
-                action: 'download_item_folder'
-            }, {
                 icon: 'trash',
                 text: '删除',
                 class: 'text-danger',
@@ -78,60 +124,161 @@ var g_downloader = {
         self.aria_start();
         self.refresh()
     },
-    modal_download() {
 
+    getAriaPath(file) {
+        return g_setting.getConfig('aria2c_path') + (file || '')
+    },
+
+    saveConfig() {
+        nodejs.require('fs').writeFileSync(this.getAriaPath('aria2.conf'), nodejs.require('ini').stringify(this.config))
+    },
+
+    modal_download(opts = {}) {
+        confirm(`<fieldset id="div_download_add" class="form-fieldset"></fieldset>`, {
+            title: opts.title || '添加下载',
+            id: 'modal_download_add',
+            btn_ok: '添加',
+            onShow: () => {
+                $('#div_download_add').html(g_form.build('download_add', {
+                    elements: {
+                        fileName: {
+                            title: '文件名',
+                            value: getVal(opts.fileName),
+                        },
+                        url: {
+                            title: '下载地址',
+                            required: true,
+                            value: getVal(opts.url),
+                        },
+                        pathName: {
+                            title: '保存位置',
+                            required: true,
+                            value: getVal(opts.pathName, g_setting.getConfig('savePath'))
+                        }
+                        /*,
+                        switch: {
+                            title: '立即下载',
+                            type: 'checkbox',
+                            value: true,
+                        }*/
+                    },
+                }))
+                g_form.update('download_add')
+            },
+            onBtnClick: (btn, modal) => {
+                if (btn.id == 'btn_ok') {
+                    let vals = g_form.getVals('download_add')
+                    let b = Object.keys(vals).length > 0
+                    if (b) {
+                        vals.title = vals.fileName
+                        this.item_add(new Date().getTime(), vals)
+                    }
+                    return b
+                }
+            }
+        })
     },
     test(url) {
         let time = new Date().getTime()
         this.item_add('test_' + time, {
             pathName: 'I:\\software\\douyin_downloader\\download',
             fileName: time + 'test.mp4',
-            url: url || 'http://127.0.0.1/a.mp4',
+            url: url || 'http://127.0.0.1/1.mp4',
             title: 'test_' + time + '.mp4'
         })
     },
+    cache: {
+        downloading: {},
+    },
+    config: {},
     aria_start() {
         const self = this
-        self.aria2c = require('./aria2c.js')()
-        self.aria2c
-            .on('conect_success', () => {
-                // g_action.do(undefined, 'download_list')
-                // self.test()
-            })
-            .on('conect_error', () => {
-                console.log('error')
-            })
-            .on('addUri', v => {
-                self.downloaded_add(v.refer)
-                self.data_set(v.id, Object.assign(v, {
-                    date: new Date().getTime(),
-                }))
-            })
-            .on('downloading', v => {
-                self.item_update('downloading', v)
-            })
-            .on('error', v => {
-                self.item_update('error', v)
-            })
-            .on('complete', v => {
-                self.item_get(v.id).finish = new Date().getTime()
-                self.data_save()
+        let path = g_setting.getConfig('aria2c_path')
+        let file = path + 'aria2.conf'
+        if (!nodejs.files.exists(file)) {
+            return toast('arai2c配置文件不存在', 'danger')
+        }
 
-                self.item_update('complete', v)
+        try {
+            self.config = nodejs.require('ini').parse(nodejs.files.read(file));
+            // TODO 如果aria2c位置改变则重新启动aria
+
+            self.aria2c = require('./aria2c.js')({
+                path: path,
+                config: {
+                    port: self.config['rpc-listen-port'],
+                }
             })
-            .on('update', v => self.update(v))
-            .init()
+            self.aria2c
+                .on('conect_success', () => {
+                    self.aria2c
+                        .setGlobalTasker(r => {
+                            // let progress
+                            // ipc_send('progress', {val: progress, type: 'normal'})
+                            let speed = renderSize(Number(r.downloadSpeed))
+                            document.title = `[${speed}]` + ((r.numActive != '0' ? r.numActive + '下载中 ' : '') + (r.numWaiting != '0' ? r.numWaiting + '队列中 ' : '') || ' 没有下载任务')
+                            $('#badge_downloading').html(r.numActive).toggleClass('hide', r.numActive == '0')
+                            $('#badge_downloadSpeed').html(`${speed}`)
+                        }).
+                    setItemUpdate((r, ids) => {
+                        ids.forEach((id, i) => {
+                            let { completedLength, totalLength } = r[i][0]
+                            let progress = parseInt(Number(completedLength) / Number(totalLength) * 100)
+                            self.item_getEle(id).find('progress').val(progress)
+                        })
+                    })
+                })
+                .on('conect_error', () => {
+                    console.log('链接失败')
+                })
+                .on('addUri', v => {
+                    g_plugin.callEvent('addUri', v, v => {
+                        self.downloaded_add(v.refer)
+                        self.data_set(v.id, Object.assign(v, {
+                            date: new Date().getTime(),
+                        }))
+                    })
+                })
+                .on('downloading', v => {
+                    // 开始下载
+                    self.item_update('downloading', v)
+                    // 检测下载进度
+                })
+                .on('error', v => {
+                    self.item_update('error', v)
+                })
+                .on('complete', v => {
+                    self.item_get(v.id).finish = new Date().getTime()
+                    self.data_save()
+
+                    self.item_update('complete', v)
+                })
+                .init()
+        } catch (err) {
+            alert(err.toString(), { title: '启动aria2失败', type: 'danger' })
+        }
+
     },
     // 下载历史
     downloaded_add(url) {
         if (url == '') return;
-        if (!this.downloaded_exists(url)) {
+        if (this.downloaded_exists(url) == -1) {
             this.downloaded.push(url)
             this.downloaded_save()
         }
     },
+    downloaded_toggle(url) {
+        if (url == '') return;
+        let i = this.downloaded_exists(url)
+        if (i >= 0) {
+            this.downloaded.splice(i, 1)
+        } else {
+            this.downloaded.push(url)
+        }
+        this.downloaded_save()
+    },
     downloaded_exists(url) {
-        return this.downloaded.includes(url)
+        return this.downloaded.indexOf(url)
     },
     downloaded_save() {
         local_saveJson('downloaded', this.downloaded)
@@ -140,25 +287,31 @@ var g_downloader = {
         return this.datas[id]
     },
     item_remove(id) {
+        let d = this.item_get(id)
         this.item_getEle(id).remove()
+        d.gid && this.aria2c.remove(d.gid).then(gid => {
+            // 如果还在下载，则删除源文件和.aira
+            let file = d.pathName + '/' + d.fileName
+            nodejs.files.remove(file)
+            nodejs.files.remove(file + '.aria2')
+        })
         return this.data_set(id)
-        // todo 取消aria2c下载
     },
     item_add(id, opts) {
-        let now = new Date().getTime()
-
-        if (isEmpty(id)) id = now
-        // todo 分类规则
-
-        // base64数据直接下载
+        if (isEmpty(id)) id = new Date().getTime()
         Object.assign(opts, {
             pathName: g_setting.getConfig('savePath', nodejs.dir + '\\downloads'),
         })
-        opts.title = opts.fileName
-        opts.fileName = new Date().getTime() + '.' + opts.fileName.split('.').pop()
-
-        this.aria2c.task_list_add(id, [opts]);
-        this.refresh()
+        g_plugin.callEvent('beforeaddDownload', { id: id, opts: opts }, data => {
+            let { id, opts } = data
+            // todo 分类规则
+            // base64数据直接下载
+            opts.title = opts.fileName
+            opts.fileName = new Date().getTime() + '.' + opts.fileName.split('.').pop()
+            opts.id = id
+            this.aria2c.addUris([opts]);
+            this.refresh()
+        })
     },
     refresh() {
         $('#download_list').html(this.html_get())
@@ -181,17 +334,13 @@ var g_downloader = {
             case 'downloading':
                 c = 'primary status-dot-animated'
                 h = `
-                    <div class="progress progress-sm">
-                      <div class="progress-bar progress-bar-indeterminate"></div>
-                    </div>
+                    <progress class="progress progress-sm" value="0" max="100"/>
                 `
                 break;
-
             case 'error':
                 c = 'danger'
                 h = '下载错误'
                 break;
-
             case 'complete':
                 c = 'success'
                 h = '下载完成'
@@ -216,12 +365,6 @@ var g_downloader = {
     data_save() {
         local_saveJson('downloads', this.datas)
     },
-    update(v) {
-        // console.log(v)
-        let i = v.downloading || 0
-        $('#badge_downloading').html(i).toggleClass('hide', !i)
-        // { downloading: 0, complete: 1, error: 0, waitting: 0, progress: 100 }
-    },
     html_get() {
         let h = ''
         for (let [id, item] of Object.entries(this.datas)) {
@@ -243,7 +386,7 @@ var g_downloader = {
                     </div>
                     <div class="col-auto">
                       <a class="list-group-item-actions">
-                        <i class="ti ti-folder"></i>
+                        <i class="ti ti-folder" data-action="download_item_folder"></i>
                       </a>
                     </div>
                   </div>

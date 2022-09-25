@@ -198,12 +198,12 @@ var g_modal = {
             backgroundColor: 'rgba(0, 0, 0, .4)',
         }).appendTo('body')
 
-        if (opts.width) {
-            modal.find('.modal-dialog').css({
-                width: opts.width,
-                maxWidth: 'unset'
-            })
-        }
+        let dialog = modal.find('.modal-dialog')
+        opts.width && dialog.css({
+            width: opts.width,
+            maxWidth: 'unset'
+        })
+        opts.scrollable && dialog.addClass('modal-dialog-scrollable')
 
         // 绑定按钮事件
         let def_btn

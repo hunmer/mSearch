@@ -1,4 +1,25 @@
-[class*=" link-"].disabled, [class^=link-].disabled {
+
+
+:root {
+    --offset-top: 0px;
+}
+
+main {
+    width:  100%;
+    position: fixed;
+    overflow-y: hidden;
+    top: var(--offset-top) !important;
+}
+
+/* 保持播放器control显示 */
+video::-webkit-media-controls-panel {
+   display: flex !important;
+   opacity: 1 !important;
+}
+
+
+[class*=" link-"].disabled,
+[class^=link-].disabled {
     color: #c7c9cb;
     pointer-events: none;
 }
@@ -7,18 +28,23 @@
 .dropdown-item i {
     margin-right: 5px;
 }
+
 i {
     cursor: pointer;
 }
 
-webview.hidden { width: 0px; height: 0px; flex: 0 1; }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+webview.hidden {
+    width: 0px;
+    height: 0px;
+    flex: 0 1;
+}
 
 body {
     /*min-height: calc(100vh);*/
     -webkit-overflow-scrolling: touch;
     font-family: customFont, -apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     overflow: hidden;
-     -webkit-user-select: none;
+    -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
 }
@@ -84,11 +110,11 @@ body {
     width: 100vw !important;
 }
 
-.h-auto{
+.h-auto {
     height: fit-content !important;
 }
 
-.w-auto{
+.w-auto {
     width: fit-content !important;
 }
 
@@ -98,6 +124,10 @@ body {
 
 .hide {
     display: none;
+}
+
+.hide1 {
+    display: none !important;
 }
 
 .show1 {
@@ -128,6 +158,31 @@ body {
     text-overflow: ellipsis;
 }
 
-#content ul li.nav-item:nth-of-type(n+4) span { /* 4个标签后面只显示图标 */
+#content ul li.nav-item:nth-of-type(n+4) span {
+    /* 4个标签后面只显示图标 */
     display: none;
+}
+
+/* callout */
+.bd-callout-info {
+    --bd-callout-bg: rgba(var(--bs-info-rgb), .075);
+    --bd-callout-border: rgba(var(--bs-info-rgb), .5);
+}
+.bd-callout {
+    padding: 1.25rem;
+    /*margin-top: 1.25rem;*/
+    margin-bottom: 1.25rem;
+    background-color: var(--bd-callout-bg, var(--bs-gray-100));
+    border-left: 0.25rem solid var(--bd-callout-border, var(--bs-gray-300));
+}
+
+
+.bd-callout-warning {
+    --bd-callout-bg: rgba(var(--bs-warning-rgb), .075);
+    --bd-callout-border: rgba(var(--bs-warning-rgb), .5);
+}
+
+.bd-callout-danger {
+    --bd-callout-bg: rgba(var(--bs-danger-rgb), .075);
+    --bd-callout-border: rgba(var(--bs-danger-rgb), .5);
 }

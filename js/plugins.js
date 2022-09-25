@@ -60,6 +60,7 @@ var g_plugin = {
                     data[k] = data[k].apply(data)
                 }
             }
+            // todo promise
             for (var listener of event.listeners.sort((a, b) => {
                     return b.primary - a.primary;
                 })) {
@@ -140,7 +141,7 @@ var g_plugin = {
         }).then(() => {
              $('#modal_plugins_edit').modal('hide');
                     g_plugin.removeKey(key);
-                    toast('删除成功', 'alert-success');
+                    toast('删除成功', 'success');
         })
     },
     changed: 0,
@@ -212,7 +213,7 @@ var g_plugin = {
 
                 if (btn.id == 'btn_ok') {
                     var content = $('#input_plugin_content').val();
-                    if (content == '') return toast('没有输入执行内容', 'alert-danger');
+                    if (content == '') return toast('没有输入执行内容', 'danger');
                     if (!key) key = guid();
                     g_plugin.setItem(key, {
                         content: content,
@@ -221,7 +222,7 @@ var g_plugin = {
                         desc: $('#input_plugin_desc').val(),
                         primary: parseInt($('#input_plugin_primary').val()),
                     });
-                    toast('保存成功', 'alert-success');
+                    toast('保存成功', 'success');
                 } else
                 if (btn.id == 'btn_delete') {
                     g_plugin.prompt_delete(key);

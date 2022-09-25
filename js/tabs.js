@@ -58,6 +58,8 @@ var g_tabs = {
             let id = dom.dataset.tab
             let con = self.tab_getContent(id)
             let web = con.find('webview')
+
+            g_network.switchTo(web.data('web-content'))
             if (web.attr('src') == undefined) {
                 // 初始化URL
                 web.attr('src', web.data('src'))
@@ -244,7 +246,7 @@ var g_tabs = {
                 `, o)
 
             case 'group-content':
-            //  plugins partition="persist:test" 
+                //  plugins partition="persist:test" 
                 return format(`
                     <div class="tab-pane %show%" id="%tid%">
                         <div class="web w-full" style="height: 100vh">
@@ -324,6 +326,7 @@ var g_tabs = {
     },
     ids: {}, // webContentID 对应 站点
     ids_remove: function(id) {
+        g_network.remove(id) // 移除网络捕捉记录
         delete this.ids[id]
     },
 
@@ -377,7 +380,7 @@ var g_tabs = {
             webview.dataset.webContent = wid
             self.ids[wid] = site
 
-            // 取session
+            // // 取session
             // let webContent = nodejs.webContents.fromId(wid)
             // webContent.partition = this.partition
             // self.session_init(webContent)
@@ -389,7 +392,6 @@ var g_tabs = {
                 window.blur();
                 window.focus();
             }
-
         })
 
         webview.addEventListener('ipc-message', event => {
@@ -397,6 +399,11 @@ var g_tabs = {
             var web = event.target;
             // console.log(event)
             switch (event.channel) {
+                case 'markURL':
+                    return g_downloader.downloaded_toggle(g_cache.targetURL)
+                case 'click':
+                    // web点击时关闭dropdown
+                    return bootstrap.Dropdown.clearMenus();
                 case 'prevSite':
                 case 'nextSite':
                     return g_action.do(null, event.channel);
@@ -414,7 +421,8 @@ var g_tabs = {
         }
         webview.addEventListener('update-target-url', function(e) {
             // 显示目标链接是否已经下载过
-            g_tabs.group_getContent(this.id.split('-')[0]).toggleClass('border-danger border-wide', g_downloader.downloaded_exists(e.url))
+            g_cache.targetURL = e.url
+            g_tabs.group_getContent(this.id.split('-')[0]).toggleClass('border-danger border-wide', g_downloader.downloaded_exists(e.url) >= 0)
         });
 
         webview.addEventListener('page-title-updated', function(e) {
@@ -459,6 +467,7 @@ var g_tabs = {
             }
         });
         webview.addEventListener('destroyed', function(e) {
+            console.log(this.getWebContentsId())
             self.ids_remove(this.getWebContentsId());
         });
 
@@ -553,8 +562,8 @@ var g_tabs = {
     },
 
     // 获取组div
-    group_getContent: function(group) {
-        return $(`.card[data-site="${group}"]`)
+    group_getContent: function(site) {
+        return $(`.card[data-site="${site}"]`)
     },
 
     // 从webview新打开的窗口
@@ -581,7 +590,6 @@ var g_tabs = {
             opts: opts,
             group: group,
         }, data => {
-            console.log(data)
             let { group, opts } = data
             let id = group + '-' + opts.id
             let tid = 'tabs-' + id
@@ -615,6 +623,10 @@ var g_tabs = {
 
     tab_setActive: function(id) {
         g_action.do(this.tab_getBtn(id)[0], 'tab_show')
+    },
+
+    getCurrentWeb(){
+        return g_tabs.group_getCurrentWeb(g_tabs.btn_getCurrent().data('site'))
     },
 
     // 获取所有tabs

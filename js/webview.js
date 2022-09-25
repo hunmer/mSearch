@@ -46,6 +46,9 @@ window.addEventListener('DOMContentLoaded', function(e) {
             addZoom(ev.deltaY > 0 ? -0.1 : 0.1)
         }
     })
+    window.addEventListener('click', (ev) => {
+        send('click')
+    })
     window.addEventListener('keydown', (ev) => {
         let key = ev.key.toLowerCase()
         // 发送按键状态
@@ -62,6 +65,8 @@ window.addEventListener('DOMContentLoaded', function(e) {
                 return ev.altKey && ev.ctrlKey && ipc_send('nextSite');
             case 'w':
                 return ev.ctrlKey && ipc_send('closeTab');
+            case 'f1':
+                return ipc_send('markURL')
             case 'f11':
                 return ipc_send('toggleFullscreen');
             case 'browserback':
