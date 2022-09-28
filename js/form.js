@@ -2,16 +2,8 @@ var g_form = {
     init() {
 
     },
-    getPreset(t) {
-        switch (t) {
-            case 'text':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label {required}">{title}</label>
-                        <input id="{id}" placeholder="{placeholder}" type="text" class="form-control"/>
-                    </div>
-                `
-
+    getPreset(n, d) {
+        switch (d.type) {
             case 'checkbox':
                 return `
                     <label class="form-check">
@@ -35,6 +27,35 @@ var g_form = {
                         <span class="form-check-label {required}">{title}</span>
                       </label>
                 `
+
+            case 'datalist':
+                return `
+                    <label class="form-label">{title}</label>
+                    <input id="{id}" class="form-control" list="detalist_{id}" placeholder="{placeholder}">
+                    <datalist id="detalist_{id}">
+                    ${(() => {
+                        let h = ''
+                        let vals = Object.values(d.list)
+                        let keys = Array.isArray(d.list) ? [...vals] : Object.keys(d.list)
+                        keys.forEach((k, i) => {
+                            h += `<option value="${k}" ${k == d.value ? 'selected' : ''}>${vals[i]}</option>`
+                        })
+                        return h
+                    })()}
+                    </datalist>
+                `
+
+             case 'textarea': 
+                return `
+                    <label class="form-label {required}">{title}</label>
+                    <textarea id="{id}" rows="{rows}" placeholder="{placeholder}" class="form-control"/></textarea>
+                `
+
+            default: 
+                return `
+                    <label class="form-label {required}">{title}</label>
+                    <input id="{id}" placeholder="{placeholder}" type="text" class="form-control"/>
+                `
         }
     },
     list: {},
@@ -45,13 +66,14 @@ var g_form = {
         this.list[id] = opts
         let html = ''
         for (let [name, item] of Object.entries(opts.elements)) {
-            let t = item.type || 'text'
-            let h = item.html || this.getPreset(t)
+            let h = item.html || `
+             <div class="mb-3">` + this.getPreset(name, item) + '</div>'
             html += h
-                .replace('{id}', name)
-                .replace('{title}', item.title || '')
-                .replace('{required}', item.required ? 'required' : '')
-                .replace('{placeholder}', item.placeHolder || '')
+                .replaceAll('{id}', name)
+                .replaceAll('{title}', item.title || '')
+                .replaceAll('{rows}', item.rows || 3)
+                .replaceAll('{required}', item.required ? 'required' : '')
+                .replaceAll('{placeholder}', item.placeHolder || '')
         }
         return `<div id="form_${id}">` + html + '</div>';
     },
@@ -106,9 +128,11 @@ var g_form = {
             case 'checkbox':
             case 'switch':
             case 'radio':
+            case 'datalist':
                 return dom.checked = Boolean(val)
 
             case 'text':
+            case 'textarea':
                 return dom.value = val || ''
         }
     },
@@ -155,31 +179,43 @@ g_form.init()
 //     onShow: () => {
 //         $('#test').html(g_form.build('test', {
 //             elements: {
-//                 fileName: {
-//                     title: '文件名',
-//                     placeHolder: '输入文件名',
+//                 text: {
+//                     title: 'text',
+//                     placeHolder: '...',
 //                     value: 'aaa',
 //                 },
-//                 url: {
-//                     title: '下载地址',
-//                     placeHolder: '输入URL',
-//                     required: true,
+//                 textarea: {
+//                     title: 'textarea',
+//                     type: 'textarea',
+//                     rows: 3,
+//                     placeHolder: '...',
+//                     value: 'aaa',
 //                 },
-//                 download: {
-//                     title: '立即下载',
+//                 checkbox: {
+//                     title: 'checkbox',
 //                     type: 'checkbox',
 //                     value: true,
 //                 },
 //                 switch: {
-//                     title: '立即下载',
+//                     title: 'switch',
 //                     type: 'switch',
 //                     value: true,
 
 //                 },
 //                 radio: {
-//                     title: '立即下载',
+//                     title: 'radio',
 //                     type: 'radio',
 //                     value: true,
+//                 },
+//                 datalist: {
+//                     title: 'datalist',
+//                     type: 'datalist',
+//                     list: {
+//                         k1: '啊',
+//                         k2: '额',
+//                         k3: 'v3',
+//                     },
+//                     value: 'k2',
 //                 },
 //             },
 //         }))

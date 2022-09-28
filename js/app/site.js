@@ -362,10 +362,10 @@ var g_sites = {
             let d = self.site_get(site)
             switch (action[0]) {
                 case 'site_closeOther':
-                    for(let s of g_sites.group_get(g_sites.group)){
-                        if(s != site) g_tabs.group_getContent(s).remove()
+                    for (let s of g_sites.group_get(g_sites.group)) {
+                        if (s != site) g_tabs.group_getContent(s).remove()
                     }
-                    return; 
+                    return;
                 case 'site_clone':
                     self.site_set(site + +parseInt(new Date().getTime() / 1000), d)
                     g_toast.toast('成功克隆', '', 'success')
@@ -399,26 +399,37 @@ var g_sites = {
             folder: '',
             url: '',
         }
-        confirm(`
-                <div class="mb-3">
-                  <label class="form-label">名称</label>
-                  <input id="input_name" type="text" class="form-control" placeholder="输入名称" value="${site}">
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">目录</label>
-                  <input id="input_folder" type="text" class="form-control" placeholder="输入目录" value="${d.folder}">
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">网址</label>
-                  <input id="input_url" type="text" class="form-control" placeholder="输入网址" value="${d.url}">
-                </div>
-                `, {
+        g_form.confirm('site_edit', {
+            elements: {
+                name: {
+                    title: '名称',
+                    required: true,
+                    placeholder: '输入名称',
+                    value: site,
+                },
+                folder: {
+                    title: '目录',
+                    list: this.group_list(),
+                    type: 'datalist',
+                    placeholder: '选择目录',
+                    value: d.folder,
+                },
+                url: {
+                    title: '网址',
+                    required: true,
+                    type: 'textarea',
+                    rows: 3,
+                    placeholder: '输入网址',
+                    value: d.url,
+                },
+            },
+        }, {
+            id: 'site_edit',
             title: (site == '' ? '新建' : '编辑') + '网址',
             btn_ok: '保存',
             onBtnClick: (btn, modal) => {
                 if (btn.id == 'btn_ok') {
-                    let name = modal.find('#input_name').val()
-                    let url = modal.find('#input_url').val()
+                    let { name, folder, url } = g_form.getVals('site_edit')
                     if (isEmpty(name)) {
                         g_toast.toast('输入名称', '错误', 'danger')
                         return false
@@ -431,7 +442,7 @@ var g_sites = {
                         delete this.list[site]
                     }
                     this.site_set(name, {
-                        folder: modal.find('#input_folder').val(),
+                        folder: folder,
                         url: url,
                     })
                 }
@@ -555,8 +566,11 @@ var g_sites = {
         setTimeout(() => {
             // 重置tabs
             $('#content').scrollTop(0).scroll();
-            this.site_setActive(names[0])
-            this.group_update()
+            if (names.length) {
+                this.site_setActive(names[0])
+                this.group_update()
+            }
+
         }, 200)
     },
     site_setActive: function(btn) {

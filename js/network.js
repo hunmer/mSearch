@@ -68,7 +68,7 @@ var g_network = {
         g_action.registerAction('network_show', dom => {
             self.show(g_tabs.getCurrentWeb().data('web-content'))
         }).
-        registerAction('network_item_preview', dom => {
+        registerAction('network_item_preview', (dom, action) => {
             let k = $(dom).parents('[data-network]').data('network')
             let d = self.detail_get(self.currentID, k)
             let h = ''
@@ -85,9 +85,25 @@ var g_network = {
                     return
             }
             $('#network_preview').remove()
-            $(`<div id="network_preview" class="position-fixed bottom-0 end-0 p-3 text-center border border-danger bg-light" style="width: 220px;height: 150px;z-index: 999;">
+            if(action.length > 1){
+            	// modal展示
+            	alert(h, {
+            		id: 'res_preview',
+            		title: '视频预览',
+            		btn_ok: '下载',
+            		width: '80%',
+            	}).then(() => {
+            		g_modal.remove('res_preview')
+            		 g_downloader.modal_download({
+                        url: d.url,
+                    })
+            	})
+            }else{
+            	 $(`<div id="network_preview" class="position-fixed bottom-0 end-0 p-3 text-center border border-danger bg-light" style="width: 220px;height: 150px;z-index: 999;">
                 ${h}
-            </div>`).appendTo('body')
+            	</div>`).appendTo('body')
+            }
+           
         }).
         registerAction('network_preview_remove', dom => {
             $('#network_preview').remove()
@@ -218,7 +234,7 @@ var g_network = {
                     <td class="text-mute">${detail.method}</td>
                     <td class="text-mute" title="${detail.url}">${detail.resourceType}</td>
                     <td class="text-center">
-                        <i class="ti ti-eye fs-2" data-hover="network_item_preview" data-out="network_preview_remove" data-hover-time=300></i>
+                        <i class="ti ti-eye fs-2" data-action="network_item_preview,modal" data-hover="network_item_preview" data-out="network_preview_remove" data-hover-time=300></i>
                         <i class="ti ti-download fs-2" data-action="network_item_download"></i>
                     </td>
                   </tr>

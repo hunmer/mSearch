@@ -399,7 +399,7 @@ var g_hotkey = {
         if (e.ctrlKey) a.push('ctrl');
         if (e.altKey) a.push('alt');
         if (e.shiftKey) a.push('shift');
-        a.push(e[type].toLowerCase());
+        e[type] && a.push(e[type].toLowerCase());
         return a.join('+');
     }
 }

@@ -4,7 +4,6 @@ var g_downloader = {
         self.downloaded = local_readJson('downloaded', [])
         self.datas = local_readJson('downloads', {})
 
-
         g_action.
         registerAction('download_title_click', dom => {
             let id = $(dom).parents('[data-download]').data('download')
@@ -70,7 +69,7 @@ var g_downloader = {
             g_menu.hideMenu('download_item_menu')
             switch (action[0]) {
                 case 'download_item_folder':
-                    let file = d.pathName + d.fileName
+                    let file = d.pathName +'\\'+ d.fileName
                     if (!nodejs.files.exists(file)) return g_toast.toast('文件不存在', '错误', 'danger');
                     return ipc_send('openFolder', file)
                     break;
@@ -301,12 +300,12 @@ var g_downloader = {
 
         g_plugin.callEvent('beforeaddDownload', { id: id, opts: opts }).then(data => {
             let { id, opts } = data
+            console.log(opts)
             // todo 分类规则
             // base64数据直接下载
-            opts.title = opts.fileName
             opts.id = id
+            opts.title = opts.fileName
             this.aria2c.addUris([opts]);
-            this.refresh()
         })
     },
     refresh() {
@@ -356,6 +355,7 @@ var g_downloader = {
             this.datas[k] = v
         }
         save && this.data_save()
+        this.refresh()
         return this
     },
     data_save() {
